@@ -1,0 +1,12 @@
+li.dropbox-api-icon{
+    background-repeat: no-repeat;
+    padding-left: 20px;
+}
+
+li.dropbox-api-icon>a{
+    margin: 4px;
+    padding: 0px;
+    padding-left: 2px;
+    margin-left: -2px;
+}
+
