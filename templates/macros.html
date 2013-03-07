@@ -1,0 +1,37 @@
+{% macro render_field(field) %}
+
+<div class="control-group {% if field.errors %}error{% endif %}">
+    {% if field.type != 'HiddenField' %}
+    {{ field.label(class='control-label') }}
+    {% endif %}
+
+    <div class="controls">
+        {{ field(**kwargs)|safe }}
+        {% if field.errors %}
+        <span class="help-inline">
+            {{ ('<br>'|safe).join(field.errors) }}
+        </span>
+        {% endif %}
+    </div>
+</div>
+
+{% endmacro %}
+
+{% macro date_picker() %}
+<script type="text/javascript">
+head.ready('jquery_timepicker', function(){
+    var startDateTextBox = $('#start_date');
+    var endDateTextBox = $('#end_date');
+
+    startDateTextBox.datetimepicker({ 
+        dateFormat: 'yy-mm-dd',
+        timeFormat: 'HH:mm'
+    });
+    endDateTextBox.datetimepicker({ 
+        dateFormat: 'yy-mm-dd',
+        timeFormat: 'HH:mm'
+    });
+});
+</script>
+{% endmacro %}
+
