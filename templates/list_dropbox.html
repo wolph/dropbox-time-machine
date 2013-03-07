@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block body %}
+
+<div class="well">
+    <h3>Listing {{ path or 'Dropbox' }} as {{ account.display_name }} ({{ account.email }})</h3>
+    <ul class="nav nav-list">
+        <li class="nav-header dropbox-api-icon" style="background-image: url({{ url_for('static', filename='dropbox-api-icons/16x16/%s.gif' % metadata['icon']) }});">
+            {% for path, name in path_parts -%}
+            /
+            <a style="display: inline;" href="{{ url_for('list_dropbox', path=path) }}">{{ name }}</a>
+            {%- endfor %}
+        </li>
+
+        <li class="dropbox-api-icon" style="background-image: url({{ url_for('static', filename='dropbox-api-icons/16x16/%s.gif' % metadata['icon']) }});">
+            <a href="{{ url_for('list_dropbox', path=path) }}">.</a>
+        </li>
+
+        <li class="dropbox-api-icon" style="background-image: url({{ url_for('static', filename='dropbox-api-icons/16x16/%s.gif' % metadata['icon']) }});">
+            <a href="{{ url_for('list_dropbox', path=parent_path) }}">..</a>
+        </li>
+
+        {% for dir in metadata.contents if dir.is_dir %}
+        <li class="{% if dir.is_deleted %}disabled{% endif %} dropbox-api-icon" style="background-image: url({{ url_for('static', filename='dropbox-api-icons/16x16/%s.gif' % dir['icon']) }});">
+            <a title="{{ dir.title }}" href="{{ url_for('list_dropbox', path=dir.path[1:]) }}">{{ dir.name }}</a>
+        </li>
+        {% endfor %}
+
+        {% for file in metadata.contents if not file.is_dir %}
+        <li class="{% if file.is_deleted %}disabled{% endif %} dropbox-api-icon" style="background-image: url({{ url_for('static', filename='dropbox-api-icons/16x16/%s.gif' % file['icon']) }});">
+            <a title="{{ file.title }}">{{ file.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div class="well">
+    <h3>Do you want to restore all files deleted in this period within the folder <a>{{ path }}</a>?</h3>
+    <form class="form-horizontal" method="post">
+        {% for field in form %}
+        {{ macros.render_field(field) }}
+        {% endfor %}
+
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" class="btn btn-danger">Restore</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{{ macros.date_picker() }}
+
+{% endblock body %}
+
