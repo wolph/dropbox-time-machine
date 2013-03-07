@@ -1,0 +1,76 @@
+{% macro css_link(filename, media='screen') -%}
+<link href="{{ url_for('static', filename=filename) }}" rel="stylesheet" media="{{ media }}">
+{%- endmacro %}
+
+{% macro css() %}
+{% for css_file in varargs %}
+    {{ css_link(css_file) }}
+{% endfor %}
+{% endmacro %}
+
+{% macro js() -%}
+<script>
+    head.js(
+    {% for k, v in kwargs.iteritems() %}
+        { {{ k }}: '{{ url_for('static', filename=v) }}'}{% if not loop.last %},{% endif %}
+    {% endfor %}
+    );
+</script>
+{%- endmacro %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Dropbox Time Machine</title>
+        {{ css(
+            'bootstrap/css/bootstrap.min.css',
+            'jquery/css/smoothness/jquery-ui-1.8.18.custom.css',
+            'jquery.timepicker/jquery-ui-timepicker-addon.css',
+            'default.css',
+        ) }}
+        <script src="{{ url_for('static', filename='head/head.load.min.js') }}"></script>
+    </head>
+    <body>
+
+        <div class="navbar">
+            <div class="navbar-inner">
+                <div class="container">
+                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="brand" href="/" style="padding-left: 3px; margin-top: 0px; padding-top: 8px;">
+                        <img width="32" height="32" src="{{ url_for('static', filename='logo.64x64.png') }}">
+                        Dropbox Time Machine
+                    </a>
+                    <div class="nav-collapse collapse">
+                        <ul class="nav">
+                            {%- for name, endpoint in [
+                                ('(re-)authenticate', 'authenticate'),
+                                ('list dropbox', 'list_dropbox'),
+                            ] %}
+                            <li {% if endpoint == request.endpoint %}class="active"{% endif %}><a href="{{ url_for(endpoint) }}">{{ name }}</a></li>
+                            {%- endfor %}
+                            <li><a href="https://github.com/WoLpH/dropbox-time-machine/">Source</a></li>
+                            <li><a href="https://github.com/WoLpH/">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            {# <h1>Welcome to the Dropbox Time Machine</h1> #}
+            {% block body %}
+            {% endblock body %}
+        </div>
+
+        {{ js(
+        jquery='jquery/js/jquery-1.7.1.min.js',
+        jqueryui='jquery/js/jquery-ui-1.8.18.custom.min.js',
+        bootstrap='bootstrap/js/bootstrap.min.js',
+        jquery_timepicker='jquery.timepicker/jquery-ui-timepicker-addon.js',
+        ) }}
+    </body>
+</html>
