@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="well">
+{% if account %}
+    <h1>Already authenticated</h1>
+    <p>
+        You are logged in as {{ account.display_name }} ({{ account.email }}).
+    </p>
+
+    <p>
+        Do you want to re-authenticate?
+        <a class="btn btn-warning" href="?force=true">Authenticate</a>
+    </p>
+{% else %}
+    <h1>Please authenticate with Dropbox to continue</h1>
+    <a class="btn btn-success" href="{{ url }}">Authenticate</a>
+{% endif %}
+</div>
+
+
+{% endblock body %}
+
