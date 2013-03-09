@@ -130,7 +130,8 @@ class TimeMachine(dropbox.client.DropboxClient):
         logger.info('Restoring %r to %r', path, rev)
         return dropbox.client.DropboxClient.restore(self, path, rev)
 
-    def recursive_restore(self, path, start_date=None, end_date=None):
+    def recursive_restore(self, path, start_date=None, end_date=None,
+            yield_directories=False):
         logger.info(
             'Restoring files in %r which were deleted between %s and '
             '%s', path, start_date, end_date)
@@ -145,7 +146,11 @@ class TimeMachine(dropbox.client.DropboxClient):
 
         for file in metadata.get('contents', []):
             if file['is_dir']:
-                self.recursive_restore(file['path'], start_date, end_date)
+                if yield_directories:
+                    yield file
+                else:
+                    self.recursive_restore(file['path'], start_date, end_date)
+
             elif 'is_deleted' in file:
                 if start_date <= file['modified'] <= end_date:
                     self.restore(file['path'])
