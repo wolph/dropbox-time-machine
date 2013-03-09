@@ -60,6 +60,18 @@
             </div>
         </div>
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% with categories = dict(message='info') %}
+        {% if messages %}
+            <div class="well">
+            {% for category, message in messages %}
+            <p class="text-{{ categories.get(category, category) }}">{{ message }}</p>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+        {% endwith %}
+
         <div class="container">
             {# <h1>Welcome to the Dropbox Time Machine</h1> #}
             {% block body %}
