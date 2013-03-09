@@ -90,7 +90,7 @@ class Delta(object):
             raise validators.ValidationError(self.message % d)
 
 _now = datetime.datetime.now(tz=tz.tzlocal())
-_one_hour_ago = _now - datetime.timedelta(hours=1)
+_one_day_ago = _now - datetime.timedelta(days=1)
 
 
 class ReadOnlyTextInput(wtforms.widgets.TextInput):
@@ -101,16 +101,16 @@ class ReadOnlyTextInput(wtforms.widgets.TextInput):
 
 
 class RestoreForm(wtforms.Form):
-    start_date = date_fields.DateTimeField(default=_one_hour_ago)
+    start_date = date_fields.DateTimeField(default=_one_day_ago)
     end_date = date_fields.DateTimeField(
         default=_now,
         validators=[
             GreaterThan('start_date'),
             Delta(
                 'start_date',
-                'For security reasons the maximum allowed interval is 2 hours',
-                min_=datetime.timedelta(hours=0),
-                max_=datetime.timedelta(hours=2),
+                'For security reasons the maximum allowed interval is 1 day',
+                min_=datetime.timedelta(days=0),
+                max_=datetime.timedelta(days=1),
             ),
         ],
     )
