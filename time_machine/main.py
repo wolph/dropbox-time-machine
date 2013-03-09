@@ -5,6 +5,10 @@ import functools
 import dropbox_flask_session
 import forms
 from dateutil import tz
+from celery import Celery
+import settings
+from redish.client import Client
+import tasks
 
 base_path = os.path.abspath(os.path.join(__file__, '..', '..'))
 app = flask.Flask(
@@ -13,6 +17,11 @@ app = flask.Flask(
     template_folder=os.path.join(base_path, 'templates'),
 )
 app.config.from_pyfile('settings.py')
+
+celery = Celery()
+celery.config_from_object(settings)
+
+redis = Client()
 
 
 def view_decorator(f):
@@ -41,21 +50,15 @@ def index(context):
 
 @app.route('/restore/', methods=['GET', 'POST'])
 @view_decorator
-def restore():
-    form = forms.RestoreForm(flask.request.form)
-
-    if flask.request.method == 'POST' and form.validate():
-        flask.flash(
-            'Your files will be restored in the background, please be patient')
-
-    return dict(form=form)
+def restore(context):
+    context['log'] = tasks.get_redis_log(dict(flask.session.items()))
 
 
 @app.route('/dropbox/', methods=['GET', 'POST'])
 @app.route('/dropbox/<path:path>', methods=['GET', 'POST'])
 @view_decorator
 def list_dropbox(context, path=''):
-    context['form'] = forms.RestoreForm(flask.request.form, path=path)
+    form = context['form'] = forms.RestoreForm(flask.request.form, path=path)
 
     tm = time_machine.TimeMachine(context['dropbox_session'])
     context['account'] = tm.account_info()
@@ -73,9 +76,19 @@ def list_dropbox(context, path=''):
         file['title'] = 'Last modified: %s' % (file['modified'].astimezone(
             tz.tzlocal()))
 
-    if flask.request.method == 'POST' and context['form'].validate():
+    if flask.request.method == 'POST' and form.validate():
+        session = dict(flask.session.iteritems())
+        tasks.restore.delay(
+            session=session,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data,
+            path=form.path.data,
+        )
+
         flask.flash(
             'Your files will be restored in the background, please be patient')
+
+        return flask.redirect(flask.url_for('restore'))
 
     return context
 
