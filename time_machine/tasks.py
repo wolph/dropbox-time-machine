@@ -3,7 +3,7 @@ import dropbox_flask_session
 import dropbox
 import celery
 from datetime import datetime
-from main import redis
+from web import redis
 
 
 def get_redis_log(session):
