@@ -11,10 +11,10 @@ def get_redis_log(session):
 
 
 def get_redis_logger(session):
-    log = get_redis_log(session)
+    redis_log = get_redis_log(session)
 
     def log(message, *args, **kwargs):
-        log.append('%s: %s' % (
+        redis_log.append('%s: %s' % (
             datetime.now(),
             message % (args or kwargs),
         ))
