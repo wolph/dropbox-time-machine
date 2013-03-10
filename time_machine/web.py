@@ -28,7 +28,7 @@ redis = Client()
 if app.config.get('ADMINS') and not app.debug:
     mail_handler = logging.handlers.SMTPHandler(
         app.config.get('SMTP_SERVER', '127.0.0.1'),
-        app.config['SERVER_EMAIL'],
+        app.config.get('SERVER_EMAIL', app.config['ADMINS'][0]),
         app.config['ADMINS'],
         'Dropbox Time Machine Error',
     )

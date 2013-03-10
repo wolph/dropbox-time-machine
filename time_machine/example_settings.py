@@ -10,8 +10,8 @@ SECRET_KEY = ''
 
 # For debugging
 SMTP_SERVER = '127.0.0.1'
-ADMINS = ('rick@fawo.nl',)
-SERVER_EMAIL = 'dropbox@fawo.nl'
+ADMINS = ('admin@example.com',)
+SERVER_EMAIL = 'dropbox@yourdomain.com'
 
 # Celery broker
 BROKER_URL = 'redis://'
