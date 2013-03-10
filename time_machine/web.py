@@ -26,12 +26,11 @@ celery.config_from_object(settings)
 redis = Client()
 
 if app.config.get('ADMINS') and not app.debug:
-    ADMINS = ['yourname@example.com']
     mail_handler = logging.handlers.SMTPHandler(
         app.config.get('SMTP_SERVER', '127.0.0.1'),
         app.config['SERVER_EMAIL'],
         app.config['ADMINS'],
-        'YourApplication Failed',
+        'Dropbox Time Machine Error',
     )
 
     mail_handler.setFormatter(logging.Formatter('''
