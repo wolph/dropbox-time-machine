@@ -12,7 +12,6 @@ from celery import Celery
 import settings
 from redish.client import Client
 import tasks
-import flask_debugtoolbar
 
 base_path = os.path.abspath(os.path.join(__file__, '..', '..'))
 app = flask.Flask(
@@ -27,9 +26,10 @@ celery.config_from_object(settings)
 
 redis = Client()
 
-toolbar = flask_debugtoolbar.DebugToolbarExtension(app)
-
 if app.debug:
+    import flask_debugtoolbar
+    toolbar = flask_debugtoolbar.DebugToolbarExtension(app)
+
     handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)
 
