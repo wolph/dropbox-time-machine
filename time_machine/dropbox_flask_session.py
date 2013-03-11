@@ -39,7 +39,6 @@ class DropboxSession(dropbox.session.DropboxSession):
                 self.obtain_access_token()
             except dropbox.rest.ErrorResponse, exception:
                 if exception.status == 401:
-                    #self.unlink()
                     pass
                 else:
                     raise
