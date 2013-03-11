@@ -1,6 +1,7 @@
 import os
 import flask
 import logging
+import dropbox
 import time_machine
 import functools
 import dropbox_flask_session
@@ -89,8 +90,14 @@ def restore(context):
 def list_dropbox(context, path=''):
     form = context['form'] = forms.RestoreForm(flask.request.form, path=path)
 
-    tm = time_machine.TimeMachine(context['dropbox_session'])
-    context['account'] = tm.account_info()
+    try:
+        tm = time_machine.TimeMachine(context['dropbox_session'])
+        context['account'] = tm.account_info()
+    except dropbox.rest.ErrorResponse, exception:
+        if exception.status == 401:
+            return flask.redirect(flask.url_for('authenticate'))
+        else:
+            raise
 
     context['path'] = path
     path_parts = context['path_parts'] = [('', 'Dropbox')]
@@ -128,10 +135,13 @@ def authenticate(context):
     dropbox_session = context['dropbox_session']
 
     force = flask.request.args.get('force')
-
-    if not dropbox_session.is_linked() or force:
+    if force:
         # Make flask save the session again
-        context['url'] = dropbox_session.link(force=force)
+        return flask.redirect(dropbox_session.link(force=force))
+    elif flask.request.args.get('oauth_token'):
+        return flask.redirect(flask.url_for('list_dropbox'))
+    elif not dropbox_session.is_linked():
+        context['url'] = flask.url_for('authenticate') + '?force=true'
     else:
         tm = time_machine.TimeMachine(dropbox_session)
         context['account'] = tm.account_info()
