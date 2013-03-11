@@ -1,5 +1,6 @@
 import os
 import flask
+import logging
 import time_machine
 import functools
 import dropbox_flask_session
@@ -9,6 +10,7 @@ from celery import Celery
 import settings
 from redish.client import Client
 import tasks
+
 
 base_path = os.path.abspath(os.path.join(__file__, '..', '..'))
 app = flask.Flask(
@@ -23,6 +25,33 @@ celery.config_from_object(settings)
 
 redis = Client()
 
+if app.config.get('ADMINS') and not app.debug:
+    mail_handler = logging.handlers.SMTPHandler(
+        app.config.get('SMTP_SERVER', '127.0.0.1'),
+        app.config.get('SERVER_EMAIL', app.config['ADMINS'][0]),
+        app.config['ADMINS'],
+        'Dropbox Time Machine Error',
+    )
+
+    mail_handler.setFormatter(logging.Formatter('''
+    Message type:       %(levelname)s
+    Location:           %(pathname)s:%(lineno)d
+    Module:             %(module)s
+    Function:           %(funcName)s
+    Time:               %(asctime)s
+
+    Message:
+
+    %(message)s
+    '''))
+
+    mail_handler.setLevel(logging.ERROR)
+    app.logger.addHandler(mail_handler)
+
+if not app.debug:
+    syslog_handler = logging.handlers.SysLogHandler()
+    syslog_handler.setLevel(logging.WARNING)
+    app.logger.addHandler(syslog_handler)
 
 def view_decorator(f):
 

@@ -3,10 +3,10 @@ import dropbox_flask_session
 import dropbox
 import celery
 from datetime import datetime
-from main import redis
 
 
 def get_redis_log(session):
+    from web import redis
     return redis.List('log_%s' % session['request_token'])
 
 
