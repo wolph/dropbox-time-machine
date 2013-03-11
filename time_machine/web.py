@@ -1,4 +1,5 @@
 import os
+import time
 import flask
 import logging
 import dropbox
@@ -11,7 +12,7 @@ from celery import Celery
 import settings
 from redish.client import Client
 import tasks
-
+import flask_debugtoolbar
 
 base_path = os.path.abspath(os.path.join(__file__, '..', '..'))
 app = flask.Flask(
@@ -25,6 +26,16 @@ celery = Celery()
 celery.config_from_object(settings)
 
 redis = Client()
+
+toolbar = flask_debugtoolbar.DebugToolbarExtension(app)
+
+if app.debug:
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.DEBUG)
+
+    logger = logging.getLogger('')
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
 
 if app.config.get('ADMINS') and not app.debug:
     mail_handler = logging.handlers.SMTPHandler(
@@ -72,7 +83,8 @@ def view_decorator(f):
 @app.route('/')
 @view_decorator
 def index(context):
-    if context['dropbox_session'].is_linked():
+    dropbox_session = context['dropbox_session']
+    if dropbox_session.link() and dropbox_session.is_linked():
         return flask.redirect(flask.url_for('list_dropbox'))
     else:
         return flask.redirect(flask.url_for('authenticate'))
@@ -139,6 +151,10 @@ def authenticate(context):
         # Make flask save the session again
         return flask.redirect(dropbox_session.link(force=force))
     elif flask.request.args.get('oauth_token'):
+        # TODO: find a better way to do this, the Dropbox auth system is too
+        # slow so we have to wait
+        time.sleep(1)
+        dropbox_session.link()
         return flask.redirect(flask.url_for('list_dropbox'))
     elif not dropbox_session.is_linked():
         context['url'] = flask.url_for('authenticate') + '?force=true'
