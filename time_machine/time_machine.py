@@ -3,6 +3,7 @@
 import os
 import dropbox
 import logging
+import rest
 from datetime import datetime
 from dateutil import parser, tz
 
@@ -16,6 +17,7 @@ class StoredSession(dropbox.session.DropboxSession):
     '''
 
     def __init__(self, *args, **kwargs):
+        kwargs.setdefault('rest_client', rest.RESTClient)
         dropbox.session.DropboxSession.__init__(self, *args, **kwargs)
         self.load_token()
 

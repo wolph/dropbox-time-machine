@@ -2,12 +2,13 @@ import time_machine
 import dropbox_flask_session
 import dropbox
 import celery
+import main
 from datetime import datetime
 
+celery.Celery().config_from_object('settings')
 
 def get_redis_log(session):
-    from web import redis
-    return redis.List('log_%s' % session['request_token'])
+    return main.redis.List('log_%s' % session['request_token'])
 
 
 def get_redis_logger(session):
@@ -40,7 +41,7 @@ def restore(session, start_date, end_date, path):
         '%s', path, start_date, end_date)
 
     try:
-        metadata = tm.metadata(path)
+        metadata = tm.metadata(path, include_deleted=True)
     except dropbox.rest.ErrorResponse, exception:
         if exception.status == 404:
             log.error('Unable to list %r', path)
@@ -67,12 +68,22 @@ def restore(session, start_date, end_date, path):
             restore_sub.delay(path=dir['path'])
 
     for file in metadata.get('contents', []):
-        if not file['is_dir'] and start_date <= file['modified'] <= end_date:
-            restore_file_sub.delay(file=file)
-
+        if not file['is_dir'] and file.get('is_deleted'):
+            if start_date <= file['modified'] <= end_date:
+                restore_file_sub.delay(file=file)
+            else:
+                logger.info(
+                    'Skipping %s since it wasnt deleted (%s) within the time '
+                    'frame (%s-%s)',
+                    file['path'],
+                    file['modified'],
+                    start_date,
+                    end_date,
+                )
 
 @celery.task
 def restore_file(session, file):
+    restore_file.get_logger().info('Restoring %r', file)
     log = get_redis_logger(session)
     dropbox_session = dropbox_flask_session.DropboxSession(session)
     tm = time_machine.TimeMachine(dropbox_session)

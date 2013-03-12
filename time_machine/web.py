@@ -8,27 +8,15 @@ import functools
 import dropbox_flask_session
 import forms
 from dateutil import tz
-from celery import Celery
-import settings
-from redish.client import Client
 import tasks
-
-base_path = os.path.abspath(os.path.join(__file__, '..', '..'))
-app = flask.Flask(
-    __name__,
-    static_folder=os.path.join(base_path, 'static'),
-    template_folder=os.path.join(base_path, 'templates'),
-)
-app.config.from_pyfile('settings.py')
-
-celery = Celery()
-celery.config_from_object(settings)
-
-redis = Client()
+from main import app
 
 if app.debug:
-    import flask_debugtoolbar
-    toolbar = flask_debugtoolbar.DebugToolbarExtension(app)
+    try:
+        import flask_debugtoolbar
+        toolbar = flask_debugtoolbar.DebugToolbarExtension(app)
+    except ImportError:
+        pass
 
     handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)
@@ -36,34 +24,6 @@ if app.debug:
     logger = logging.getLogger('')
     logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
-
-if app.config.get('ADMINS') and not app.debug:
-    mail_handler = logging.handlers.SMTPHandler(
-        app.config.get('SMTP_SERVER', '127.0.0.1'),
-        app.config.get('SERVER_EMAIL', app.config['ADMINS'][0]),
-        app.config['ADMINS'],
-        'Dropbox Time Machine Error',
-    )
-
-    mail_handler.setFormatter(logging.Formatter('''
-    Message type:       %(levelname)s
-    Location:           %(pathname)s:%(lineno)d
-    Module:             %(module)s
-    Function:           %(funcName)s
-    Time:               %(asctime)s
-
-    Message:
-
-    %(message)s
-    '''))
-
-    mail_handler.setLevel(logging.ERROR)
-    app.logger.addHandler(mail_handler)
-
-if not app.debug:
-    syslog_handler = logging.handlers.SysLogHandler()
-    syslog_handler.setLevel(logging.WARNING)
-    app.logger.addHandler(syslog_handler)
 
 def view_decorator(f):
 
@@ -126,6 +86,13 @@ def list_dropbox(context, path=''):
 
     if flask.request.method == 'POST' and form.validate():
         session = dict(flask.session.iteritems())
+        app.logger.info(
+            'Going to restore %r between %r and %r with session %r',
+            form.path.data,
+            form.start_date.data,
+            form.end_date.data,
+            session,
+        )
         tasks.restore.delay(
             session=session,
             start_date=form.start_date.data,
@@ -168,5 +135,6 @@ def authenticate(context):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.debug = True
+    app.run(host='0.0.0.0')
 

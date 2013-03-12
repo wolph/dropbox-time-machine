@@ -1,13 +1,13 @@
 import flask
 import dropbox
 import logging
+from main import app
 
 logger = logging.getLogger(__name__)
 
 class DropboxSession(dropbox.session.DropboxSession):
 
     def __init__(self, session=None):
-        from main import app
         dropbox.session.DropboxSession.__init__(
             self,
             consumer_key=app.config['APP_KEY'],
