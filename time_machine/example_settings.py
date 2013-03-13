@@ -17,3 +17,5 @@ SERVER_EMAIL = 'dropbox@yourdomain.com'
 BROKER_URL = 'redis://'
 CELERY_RESULT_BACKEND = 'redis://'
 
+TIMEZONE = 'Europe/Amsterdam'
+

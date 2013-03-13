@@ -7,6 +7,7 @@
 <div class="well">
     <h3>Listing {{ path or 'Dropbox' }} as {{ account.display_name }} ({{ account.email }})</h3>
     <ul class="nav nav-list">
+    {% if metadata.is_dir %}
         <li class="nav-header dropbox-api-icon" style="background-image: url({{ url_for('static', filename='dropbox-api-icons/16x16/%s.gif' % metadata['icon']) }});">
             {% for path, name in path_parts -%}
             /
@@ -30,10 +31,16 @@
 
         {% for file in metadata.contents if not file.is_dir %}
         <li class="{% if file.is_deleted %}disabled{% endif %} dropbox-api-icon" style="background-image: url({{ url_for('static', filename='dropbox-api-icons/16x16/%s.gif' % file['icon']) }});">
-            <a title="{{ file.title }}">{{ file.name }}</a>
+            <a title="{{ file.title }}" href="{{ url_for('list_dropbox', path=file.path[1:]) }}">{{ file.name }}</a>
         </li>
         {% endfor %}
-    </ul>
+    {% else %}
+
+    {% for revision in revisions %}
+    <li class="{% if revision.is_deleted %}disabled{% endif %}"><a><code>{{ revision.rev }}</code> :: {{ revision.modified }}</a></li>
+    {% endfor %}
+
+    {% endif %}
 </div>
 
 <div class="well">

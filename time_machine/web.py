@@ -10,6 +10,9 @@ import forms
 from dateutil import tz
 import tasks
 from main import app
+import pytz
+
+timezone = pytz.timezone(app.config.get('TIMEZONE', 'UTC'))
 
 if app.debug:
     try:
@@ -78,10 +81,15 @@ def list_dropbox(context, path=''):
 
     context['parent_path'] = os.path.split(path)[0]
     metadata = context['metadata'] = tm.metadata(path)
-    for file in metadata['contents']:
-        file['name'] = os.path.split(file['path'])[-1]
-        file['title'] = 'Last modified: %s' % (file['modified'].astimezone(
-            tz.tzlocal()))
+
+    if metadata['is_dir']:
+        for file in metadata['contents']:
+            file['name'] = os.path.split(file['path'])[-1]
+            file['modified'] = file['modified'].astimezone(pytz.utc)
+            file['title'] = 'Last modified: %s' % timezone.normalize(
+                file['modified'])
+    else:
+        context['revisions'] = tm.revisions(path)
 
     if flask.request.method == 'POST' and form.validate():
         session = dict(flask.session.iteritems())
