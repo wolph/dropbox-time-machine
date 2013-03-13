@@ -26,7 +26,6 @@ if app.debug:
     logger.addHandler(handler)
 
 def view_decorator(f):
-
     @functools.wraps(f)
     def _view_decorator(*args, **kwargs):
         context = dict(dropbox_session=dropbox_flask_session.DropboxSession())
