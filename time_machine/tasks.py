@@ -8,7 +8,8 @@ from datetime import datetime
 celery.Celery().config_from_object('settings')
 
 def get_redis_log(session):
-    return main.redis.List('log_%s' % session['request_token'])
+    if 'request_token' in session:
+        return main.redis.List('log_%s' % session['request_token'])
 
 
 def get_redis_logger(session):

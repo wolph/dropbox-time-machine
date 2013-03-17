@@ -55,7 +55,10 @@ def index(context):
 @app.route('/restore/', methods=['GET', 'POST'])
 @view_decorator
 def restore(context):
-    context['log'] = tasks.get_redis_log(dict(flask.session.items()))
+    if flask.session.get('request_token'):
+        context['log'] = tasks.get_redis_log(dict(flask.session.items()))
+    else:
+        return flask.redirect(flask.url_for('authenticate'))
 
 
 @app.route('/dropbox/', methods=['GET', 'POST'])
@@ -83,7 +86,7 @@ def list_dropbox(context, path=''):
     metadata = context['metadata'] = tm.metadata(path)
 
     if metadata['is_dir']:
-        for file in metadata['contents']:
+        for file in metadata.get('contents', []):
             file['name'] = os.path.split(file['path'])[-1]
             file['modified'] = file['modified'].astimezone(pytz.utc)
             file['title'] = 'Last modified: %s' % timezone.normalize(
