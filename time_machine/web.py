@@ -7,7 +7,6 @@ import time_machine
 import functools
 import dropbox_flask_session
 import forms
-from dateutil import tz
 import tasks
 from main import app
 import pytz
