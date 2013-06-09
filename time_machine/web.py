@@ -27,6 +27,14 @@ if app.debug:
     logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
+def _to_unicode(line):
+    if isinstance(line, str):
+        line = unicode(line, 'utf-8', 'replace')
+    else:
+        line = unicode(line)
+
+    return line
+
 def view_decorator(f):
     @functools.wraps(f)
     def _view_decorator(*args, **kwargs):
@@ -55,7 +63,8 @@ def index(context):
 @view_decorator
 def restore(context):
     if flask.session.get('request_token'):
-        context['log'] = tasks.get_redis_log(dict(flask.session.items()))
+        lines = tasks.get_redis_log(dict(flask.session.items()))
+        context['log'] = [_to_unicode(l) for l in lines]
     else:
         return flask.redirect(flask.url_for('authenticate'))
 
