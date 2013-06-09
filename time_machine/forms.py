@@ -89,8 +89,11 @@ class Delta(object):
 
             raise validators.ValidationError(self.message % d)
 
-_now = datetime.datetime.now(tz=tz.tzlocal())
-_one_day_ago = _now - datetime.timedelta(days=1)
+def _now():
+    return datetime.datetime.now(tz=tz.tzlocal())
+
+def _one_day_ago():
+    return _now() - datetime.timedelta(days=1)
 
 
 class ReadOnlyTextInput(wtforms.widgets.TextInput):
