@@ -1,7 +1,7 @@
 Dropbox Time Machine - RETIRED!
 ==============================================================================
 
-.. DANGER::
+.. note::
 
     Dropbox recently changed their API which effectively breaks this system. It can be fixed but I have neither the time nor the interest to do so at this time.
 
