@@ -1,5 +1,9 @@
-Dropbox Time Machine
+Dropbox Time Machine - RETIRED!
 ==============================================================================
+
+.. DANGER::
+
+    Dropbox recently changed their API which effectively breaks this system. It can be fixed but I have neither the time nor the interest to do so at this time.
 
 An app that adds a time machine feature to Dropbox, instead of restoring per
 file you can simply jump back in time (before some idiot deleted all files for
